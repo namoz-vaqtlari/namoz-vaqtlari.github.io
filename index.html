@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namoz Vaqtlari - Idlib</title>
+<style>
+body{font-family:Arial;background:#0f3d2e;color:white;text-align:center;padding:20px}
+h1{font-size:28px}
+.card{background:white;color:#222;border-radius:15px;padding:15px;margin:10px auto;max-width:350px;display:flex;justify-content:space-between;font-size:20px}
+</style>
+</head>
+<body>
+<h1>🕌 Namoz Vaqtlari</h1>
+<h2>Idlib, Suriya</h2>
+<p id="sana">Yuklanmoqda...</p>
+<div id="vaqtlar"></div>
+<script>
+fetch("https://api.aladhan.com/v1/timingsByCity?city=Idlib&country=Syria&method=5")
+.then(r=>r.json()).then(d=>{
+let t=d.data.timings;
+document.getElementById("sana").innerText=d.data.date.readable;
+let nomlar={"Fajr":"Bomdod","Sunrise":"Quyosh","Dhuhr":"Peshin","Asr":"Asr","Maghrib":"Shom","Isha":"Xufton"};
+let html="";
+for(let k in nomlar){html+=`<div class="card"><b>${nomlar[k]}</b><span>${t[k].slice(0,5)}</span></div>`}
+document.getElementById("vaqtlar").innerHTML=html;
+});
+</script>
+</body>
+</html>
