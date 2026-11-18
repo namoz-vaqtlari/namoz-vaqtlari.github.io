@@ -29,8 +29,12 @@ async def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     tz = pytz.timezone("Asia/Damascus")
-    app.job_queue.run_daily(send_daily, time=time(hour=8, minute=0, tzinfo=tz))
-    await app.run_polling()
+    await app.initialize()
+    if app.job_queue:
+        app.job_queue.run_daily(send_daily, time=time(hour=5, minute=0, tzinfo=tz))
+    await app.start()
+    await app.updater.start_polling()
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())
