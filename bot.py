@@ -14,22 +14,39 @@ def get_prayer_times():
         t = r["data"]["timings"]
         hijri = r["data"]["date"]["hijri"]
         return (
-            f"Namoz vaqtlari - Fu'ah / Idlib\n"
+            f"Namoz vaqtlari - / Idlib\n"
             f"Hijriy: {hijri['day']} {hijri['month']['en']} {hijri['year']}\n\n"
             f"Bomdod: {t['Fajr']}\n"
             f"Quyosh: {t['Sunrise']}\n"
             f"Peshin: {t['Dhuhr']}\n"
             f"Asr: {t['Asr']}\n"
             f"Shom: {t['Maghrib']}\n"
-            f"Xufton: {t['Isha']}\n\n"
-            f"Alloh ibodatlaringni qabul qilsin!"
+            f"Xufton: {t['Isha']}"
         )
     except Exception as e:
         return f"Xatolik: {e}"
 
-MORNING_1 = "ERTALABKI ZIKRLAR - 1-qism\n\n"
-MORNING_1 += "1. OYATAL KURSIY (1 marta)\n"
-MORNING_1 += "Allohu la ilaha illa huwal hayyul qoyyum, la ta'xuzuhu sinatuv va la navm, lahu ma fis samavati va ma fil ard, man zallazi yashfa'u 'indahu illa bi iznih, ya'lamu ma bayna aydihim va ma xolfahum, va la yuhituna bi shay'im min 'ilmihi illa bima sha', vasi'a kursiyyuhus samavati val ard, va la ya'uduhu hifzuhuma, va huwal 'aliyyul 'azim.\n\n"
-MORNING_1 += "2. IXLOS, FALAQ, NOS - 3 martadan\n"
-MORNING_1 += "Qul huvallohu ahad...\nQul a'uzu birobbil falaq...\nQul a'uzu birobbin nas...\n\n"
-MORNING_1 += "3. ASBAHNA VA ASBAHAL MUL
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [["Namoz vaqtlari"]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text("Assalomu alaykum! Tugmani bosing:", reply_markup=reply_markup)
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.text == "Namoz vaqtlari":
+        await update.message.reply_text(get_prayer_times())
+    else:
+        await update.message.reply_text("Tugmani bosing:")
+
+def main():
+    port = int(os.environ.get("PORT", 10000))
+    def run_server():
+        HTTPServer(("0.0.0.0", port), BaseHTTPRequestHandler).serve_forever()
+    threading.Thread(target=run_server, daemon=True).start()
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("Bot ishga tushdi...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
