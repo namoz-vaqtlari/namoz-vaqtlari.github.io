@@ -74,7 +74,7 @@ La ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va Huva 'a
 
 13. ASTAG'FIRULLOH - 100 marta
 
-🤲 Ertalabingiz muborak bo'lsin!
+🤲 kuningiz xayrli bo'lsin!
 """
 
 EVENING_1 = """🌙 KECHKI ZIKRLAR - 1-qism
