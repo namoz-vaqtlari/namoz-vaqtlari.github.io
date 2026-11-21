@@ -5,7 +5,7 @@ import pytz
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = os.environ.get("TOKEN") or os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 # Fu'ah / Idlib - Suriya
