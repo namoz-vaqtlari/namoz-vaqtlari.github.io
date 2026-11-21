@@ -95,13 +95,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if text == "🕋 Namoz vaqtlari":
-        await update.message.reply_text(prayer_text(), parse_mode="Markdown")
-    elif text == "🌅 Ertalabki zikrlar":
-        await update.message.reply_text(MORNING, parse_mode="Markdown")
+            elif text == "🌅 Ertalabki zikrlar":
+        await update.message.reply_text(MORNING)
     elif text == "🌙 Kechki zikrlar":
-        await update.message.reply_text(EVENING, parse_mode="Markdown")
-    else:
-        await update.message.reply_text("Pastdagi tugmalardan birini tanlang 👇", reply_markup=KEYBOARD)
+        await update.message.reply_text(EVENING)
 
 def main():
     app = Application.builder().token(TOKEN).build()
