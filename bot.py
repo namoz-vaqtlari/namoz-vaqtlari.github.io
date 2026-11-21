@@ -1,111 +1,100 @@
 import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
-from datetime import datetime
-import pytz
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-TOKEN = os.environ.get("TOKEN") or os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+TOKEN = os.environ.get("BOT_TOKEN")
 
-# Fu'ah / Idlib - Suriya
-CITY = "Idlib"
-COUNTRY = "Syria"
-
+# --- Namoz vaqtlari ---
 def get_prayer_times():
     try:
-        url = f"https://api.aladhan.com/v1/timingsByCity?city={CITY}&country={COUNTRY}&method=5"
-        r = requests.get(url, timeout=10)
-        data = r.json()["data"]["timings"]
-        return data
-    except:
-        return None
+        url = "https://api.aladhan.com/v1/timingsByCity?city=Idlib&country=Syria&method=13"
+        r = requests.get(url, timeout=10).json()
+        t = r["data"]["timings"]
+        hijri = r["data"]["date"]["hijri"]
+        return (
+            f"🕌 *Namoz vaqtlari -  / Idlib*\n"
+            f"📅 Hijriy: {hijri['day']} {hijri['month']['en']} {hijri['year']}\n\n"
+            f"🌅 Bomdod: {t['Fajr']}\n"
+            f"☀️ Quyosh: {t['Sunrise']}\n"
+            f"🕐 Peshin: {t['Dhuhr']}\n"
+            f"🌤️ Asr: {t['Asr']}\n"
+            f"🌇 Shom: {t['Maghrib']}\n"
+            f"🌙 Xufton: {t['Isha']}\n\n"
+            f"🤲 Alloh ibodatlaringni qabul qilsin!"
+        )
+    except Exception as e:
+        return f"Xatolik: {e}"
 
-def prayer_text():
-    t = get_prayer_times()
-    if not t:
-        return "Hozir namoz vaqtlarini olib bo'lmadi. Keyinroq urinib ko'ring."
-    tz = pytz.timezone("Asia/Damascus")
-    today = datetime.now(tz).strftime("%d.%m.%Y")
-    return (
-        f"🕋 *Namoz vaqtlari - Fu'ah / Idlib*\n"
-        f"📅 {today}\n\n"
-        f"🌅 Bomdod: {t['Fajr']}\n"
-        f"🌞 Quyosh: {t['Sunrise']}\n"
-        f"☀️ Peshin: {t['Dhuhr']}\n"
-        f"🌤️ Asr: {t['Asr']}\n"
-        f"🌇 Shom: {t['Maghrib']}\n"
-        f"🌙 Xufton: {t['Isha']}\n\n"
-        f"🤲 Alloh ibodatlaringni qabul qilsin!"
-    )
+# --- TO'LIQ ZIKRLAR ---
+MORNING_1 = """🌅 ERTALABKI ZIKRLAR - 1-qism
 
-MORNING = """🌅 *ERTALABKI ZIKRLAR*
+1. OYATAL KURSIY (1 marta)
+Allohu la ilaha illa huwal hayyul qoyyum, la ta'xuzuhu sinatuv va la navm, lahu ma fis samavati va ma fil ard, man zallazi yashfa'u 'indahu illa bi iznih, ya'lamu ma bayna aydihim va ma xolfahum, va la yuhituna bi shay'im min 'ilmihi illa bima sha', vasi'a kursiyyuhus samavati val ard, va la ya'uduhu hifzuhuma, va huwal 'aliyyul 'azim.
 
-1. *Oyatal Kursiy*
-Allohu la ilaha illa Huwal Hayyul Qoyyum...
+2. IXLOS, FALAQ, NOS - 3 martadan
+Qul huvallohu ahad...
+Qul a'uzu birobbil falaq...
+Qul a'uzu birobbin nas...
 
-2. *Ixlos, Falaq, Nos* - 3 martadan
+3. ASBAHNA VA ASBAHAL MULKU LILLAH
+Asbahna va asbahal mulku lillah, val hamdu lillah, la ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va huva 'ala kulli shay'in qodir. Robbi as'aluka xoyro ma fi hazal yavmi va xoyro ma ba'dah, va a'uzu bika min sharri ma fi hazal yavmi va sharri ma ba'dah. Robbi a'uzu bika minal kasali va su'il kibar. Robbi a'uzu bika min 'azabin fin nar va 'azabin fil qobr.
 
-3. *Subhanallohi va bihamdihi* - 100 marta
+4. ALLOHUMMA BIKA ASBAHNA
+Allohumma bika asbahna va bika amsayna va bika nahya va bika namutu va ilaykan nushur.
 
-4. *La ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va Huva 'ala kulli shay'in Qodir* - 100 marta
+5. SAYYIDUL ISTIG'FOR (1 marta)
+Allohumma anta Robbi, la ilaha illa anta, xolaqtani va ana 'abduka, va ana 'ala 'ahdika va va'dika mastato'tu, a'uzu bika min sharri ma sona'tu, abu'u laka bini'matika 'alayya, va abu'u bizanbi, fag'fir li, fa innahu la yag'firuz zunuba illa anta.
+"""
 
-5. *Astag'firulloh* - 100 marta
+MORNING_2 = """🌅 ERTALABKI ZIKRLAR - 2-qism
 
-6. *Allohumma bika asbahnna va bika amsayna va bika nahya va bika namutu va ilaykan nushur*
+6. ALLOHUMMA INNI AS'ALUKA
+Allohumma inni as'alukal 'afva val 'afiyata fid dunya val oxiroh. Allohumma inni as'alukal 'afva val 'afiyata fi diniy va dunyaya va ahliy va maliy. Allohummastur 'avrotiy va amin rav'otiy. Allohummahfazniy min bayni yadayya va min xolfiy va 'an yaminiy va 'an shimaliy va min favqiy, va a'uzu bi'azomatika an ug'tala min tahtiy.
 
-7. *Hasbiyallohu la ilaha illa Huva, 'alayhi tavakkaltu va Huva Robbul 'arshil 'azim* - 7 marta
+7. HASBIYALLOHU - 7 marta
+Hasbiyallohu la ilaha illa Huva, 'alayhi tavakkaltu va Huva Robbul 'arshil 'azim.
+
+8. BISMILLAHILLAZI - 3 marta
+Bismillahillazi la yadurru ma'asmihi shay'un fil ardi va la fis sama', va Huwas sami'ul 'alim.
+
+9. RODITU BILLAHI - 3 marta
+Roditu billahi Robban, va bil islami dinan, va bi Muhammadin sollallohu 'alayhi va sallam nabiyyan.
+
+10. YA HAYYU YA QOYYUM
+Ya Hayyu Ya Qoyyum, birohmatika astag'isu, aslih li sha'ni kullah, va la takilniy ila nafsiy torfata 'ayn.
+
+11. SUBHANOLLOHI VA BIHAMDIHI - 100 marta
+Subhanallohi va bihamdihi
+
+12. LA ILAHA ILLALLOH - 100 marta
+La ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va Huva 'ala kulli shay'in Qodir.
+
+13. ASTAG'FIRULLOH - 100 marta
 
 🤲 Ertalabingiz muborak bo'lsin!
 """
 
-EVENING = """🌙 *KECHKI ZIKRLAR*
+EVENING_1 = """🌙 KECHKI ZIKRLAR - 1-qism
 
-1. *Oyatal Kursiy*
-Allohu la ilaha illa Huwal Hayyul Qoyyum...
+1. OYATAL KURSIY (1 marta)
+Allohu la ilaha illa huwal hayyul qoyyum, la ta'xuzuhu sinatuv va la navm, lahu ma fis samavati va ma fil ard, man zallazi yashfa'u 'indahu illa bi iznih, ya'lamu ma bayna aydihim va ma xolfahum, va la yuhituna bi shay'im min 'ilmihi illa bima sha', vasi'a kursiyyuhus samavati val ard, va la ya'uduhu hifzuhuma, va huwal 'aliyyul 'azim.
 
-2. *Ixlos, Falaq, Nos* - 3 martadan
+2. IXLOS, FALAQ, NOS - 3 martadan
+Qul huvallohu ahad...
+Qul a'uzu birobbil falaq...
+Qul a'uzu birobbin nas...
 
-3. *Subhanallohi va bihamdihi* - 100 marta
+3. AMSAYNA VA AMSAL MULKU LILLAH
+Amsayna va amsal mulku lillah, val hamdu lillah, la ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va huva 'ala kulli shay'in qodir. Robbi as'aluka xoyro ma fi hazihil laylati va xoyro ma ba'daha, va a'uzu bika min sharri ma fi hazihil laylati va sharri ma ba'daha. Robbi a'uzu bika minal kasali va su'il kibar. Robbi a'uzu bika min 'azabin fin nar va 'azabin fil qobr.
 
-4. *La ilaha illallohu vahdahu la sharika lah, lahul mulku va lahul hamdu va Huva 'ala kulli shay'in Qodir* - 100 marta
+4. ALLOHUMMA BIKA AMSAYNA
+Allohumma bika amsayna va bika asbahna va bika nahya va bika namutu va ilaykal masiyr.
 
-5. *Astag'firulloh* - 100 marta
-
-6. *Allohumma bika amsayna va bika asbahnna va bika nahya va bika namutu va ilaykal masiyr*
-
-7. *Hasbiyallohu la ilaha illa Huva, 'alayhi tavakkaltu va Huva Robbul 'arshil 'azim* - 7 marta
-
-8. *A'uzu bikalimatillahit tammati min sharri ma xolaq* - 3 marta
-
-🤲 Kechangiz xayrli bo'lsin!
+5. SAYYIDUL ISTIG'FOR (1 marta)
+Allohumma anta Robbi, la ilaha illa anta, xolaqtani va ana 'abduka, va ana 'ala 'ahdika va va'dika mastato'tu, a'uzu bika min sharri ma sona'tu, abu'u laka bini'matika 'alayya, va abu'u bizanbi, fag'fir li, fa innahu la yag'firuz zunuba illa anta.
 """
 
-KEYBOARD = ReplyKeyboardMarkup(
-    [["🕋 Namoz vaqtlari"], ["🌅 Ertalabki zikrlar", "🌙 Kechki zikrlar"]],
-    resize_keyboard=True
-)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Assalomu alaykum! 🤲\nFu'ah / Idlib namoz vaqtlari botiga xush kelibsiz.\n\nPastdagi tugmalardan birini tanlang:",
-        reply_markup=KEYBOARD
-    )
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    if text == "🕋 Namoz vaqtlari":
-            elif text == "🌅 Ertalabki zikrlar":
-        await update.message.reply_text(MORNING)
-    elif text == "🌙 Kechki zikrlar":
-        await update.message.reply_text(EVENING)
-
-def main():
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Bot ishga tushdi...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+EVENING_2 = """🌙 KECHKI ZIKRLAR - 2-qism
