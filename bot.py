@@ -7,6 +7,9 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
+def get_keyboard():
+    return ReplyKeyboardMarkup([["Namoz vaqtlari"]], resize_keyboard=True)
+
 def get_prayer_times():
     try:
         url = "https://api.aladhan.com/v1/timingsByCity?city=Idlib&country=Syria&method=13"
@@ -14,7 +17,7 @@ def get_prayer_times():
         t = r["data"]["timings"]
         hijri = r["data"]["date"]["hijri"]
         return (
-            f"Namoz vaqtlari - / Idlib\n"
+            f"Namoz vaqtlari - Idlib\n"
             f"Hijriy: {hijri['day']} {hijri['month']['en']} {hijri['year']}\n\n"
             f"Bomdod: {t['Fajr']}\n"
             f"Quyosh: {t['Sunrise']}\n"
@@ -27,15 +30,13 @@ def get_prayer_times():
         return f"Xatolik: {e}"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["Namoz vaqtlari"]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text("Assalomu alaykum! Tugmani bosing:", reply_markup=reply_markup)
+    await update.message.reply_text("Assalomu alaykum! Tugmani bosing:", reply_markup=get_keyboard())
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text == "Namoz vaqtlari":
-        await update.message.reply_text(get_prayer_times())
+        await update.message.reply_text(get_prayer_times(), reply_markup=get_keyboard())
     else:
-        await update.message.reply_text("Tugmani bosing:")
+        await update.message.reply_text("Tugmani bosing:", reply_markup=get_keyboard())
 
 def main():
     port = int(os.environ.get("PORT", 10000))
